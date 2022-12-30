@@ -78,11 +78,10 @@ hashTable = {}
 df = pd.DataFrame(pd.read_excel('lw3Tweets.xlsx'))
 df.drop_duplicates(subset=['Username'], inplace=True)
 df.to_excel('lw3Tweets.xlsx', sheet_name="Sheet1", header=True, index=False)
-df.sort_values(by='DaysOfCoding')
+df.sort_values(by="DaysOfCoding", inplace=True, ascending=False)
 df.to_excel('lw3Tweets.xlsx', sheet_name="Sheet1", header=True, index=False)
 
 
 #Update an excel on google using Python
 #Channel where others can see the excel sheet
 #Maybe automate code to run every 2-6 hours
-#Has to tag 
