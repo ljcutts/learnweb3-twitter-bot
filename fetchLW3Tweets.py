@@ -1,9 +1,14 @@
 import snscrape.modules.twitter as sntwitter
 import pandas as pd
 from os.path import exists
-from openpyxl import load_workbook
 import glob
 import datetime
+import json
+with open('mdrive.json') as f:
+ data = json.load(f)
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
+from df2gspread import df2gspread as d2g
 
 file_exists = exists('lw3Tweets.xlsx')
 usernameArray = []
@@ -66,7 +71,7 @@ if file_exists is True:
    df['Tweets'][counter] = hashTable[name]
    df['Date Created'][counter] = (datetime.datetime.now().year, datetime.datetime.now().month, datetime.datetime.now().day)
    df.to_excel('lw3Tweets.xlsx', sheet_name="Sheet1", header=True, index=False)
-   counter = counter + 1
+  counter = counter + 1
 
 counter = 0
 usernameArray = []
@@ -78,7 +83,25 @@ df.to_excel('lw3Tweets.xlsx', sheet_name="Sheet1", header=True, index=False)
 df.sort_values(by="DaysOfCoding", inplace=True, ascending=False)
 df.to_excel('lw3Tweets.xlsx', sheet_name="Sheet1", header=True, index=False)
 
+# use creds to create a client to interact with the Google Drive API
+scope = ['https://spreadsheets.google.com/feeds','https://www.googleapis.com/auth/drive','https://www.googleapis.com/auth/drive.file','https://www.googleapis.com/auth/spreadsheets']
+creds = ServiceAccountCredentials.from_json_keyfile_name('mdrive.json', scope)
+client = gspread.authorize(creds)
 
-#Update an excel on google using Python
-#Channel where others can see the excel sheet
+# Find a workbook by name and open the first sheet
+# Make sure you use the right name here.
+sheet = client.open("Learnweb3-100DaysOfCode-Leaderboard").sheet1
+spreadsheet_key = '1ifq06TD9qtnrSM5psbPAENktSXRM60RGUOtmDrMJgvk'
+
+wks_name = 'Sheet1'
+cell_of_start_df = 'A1'
+d2g.upload(df,
+      spreadsheet_key,
+      wks_name,
+      credentials=creds,
+      col_names=True,
+      row_names=True,
+      start_cell = cell_of_start_df,
+      clean=False)
+
 #Maybe automate code to run every 2-6 hours
