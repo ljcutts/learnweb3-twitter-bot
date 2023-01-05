@@ -38,9 +38,9 @@ if file_exists is False:
     if i>100000:
         break
     if tweet.date.day == datetime.datetime.now().day and tweet.date.month == datetime.datetime.now().month and tweet.date.year == datetime.datetime.now().year:  
-     attributes_container.append([(tweet.date.year,tweet.date.month, tweet.date.day), tweet.user.username, tweet.content, 1])  
+     attributes_container.append([(tweet.date.year,tweet.date.month, tweet.date.day), tweet.user.username, tweet.content, tweet.url, 1])  
 # Creating a dataframe from the tweets list above 
- tweets_df = pd.DataFrame(attributes_container, columns=["Date Created", "Username", "Tweets", "DaysOfCoding"])
+ tweets_df = pd.DataFrame(attributes_container, columns=["Date Created", "Username", "Tweets", "Link", "DaysOfCoding"])
  tweets_df.to_excel('lw3Tweets.xlsx', header=True, index=False)
 else:
   for i,tweet in enumerate(sntwitter.TwitterSearchScraper('100DaysOfCode LearnWeb3DAO').get_items()):
@@ -50,13 +50,12 @@ else:
     statement = (notPresent is False) and tweet.date.day == datetime.datetime.now().day and tweet.date.month == datetime.datetime.now().month and tweet.date.year == datetime.datetime.now().year
     if tweet.date.day == datetime.datetime.now().day and tweet.date.month == datetime.datetime.now().month and tweet.date.year == datetime.datetime.now().year:
       usernameArray.append(tweet.user.username)
-      hashTable[tweet.user.username] = tweet.content
+      hashTable[tweet.user.username] = [tweet.content, tweet.url]
     if statement:
-     attributes_container.append([(tweet.date.year,tweet.date.month, tweet.date.day), tweet.user.username, tweet.content, 1])  
-     tweets_df2 = pd.DataFrame(attributes_container, columns=["Date Created", "Username", "Tweets", "DaysOfCoding"])
+     attributes_container.append([(tweet.date.year,tweet.date.month, tweet.date.day), tweet.user.username, tweet.content, tweet.url, 1])  
+     tweets_df2 = pd.DataFrame(attributes_container, columns=["Date Created", "Username", "Tweets", "Link", "DaysOfCoding"])
      with pd.ExcelWriter("lw3Tweets.xlsx",mode="a",engine="openpyxl",if_sheet_exists="overlay") as writer:
       tweets_df2.to_excel(writer, sheet_name="Sheet1",header=None, startrow=writer.sheets["Sheet1"].max_row,index=False)  
-
 
 df = pd.read_excel('lw3Tweets.xlsx')
 df2 = df.filter(items=['Username'])
@@ -68,7 +67,8 @@ if file_exists is True:
    value = df['DaysOfCoding'][counter]
    df['DaysOfCoding'][counter] = value if df['Date Created'][counter] == time else value + 1
    name = df2.values[counter][0]
-   df['Tweets'][counter] = hashTable[name]
+   df['Tweets'][counter] = hashTable[name][0]
+   df['Link'][counter] = hashTable[name][1]
    df['Date Created'][counter] = (datetime.datetime.now().year, datetime.datetime.now().month, datetime.datetime.now().day)
    df.to_excel('lw3Tweets.xlsx', sheet_name="Sheet1", header=True, index=False)
   counter = counter + 1
@@ -103,5 +103,3 @@ d2g.upload(df,
       row_names=True,
       start_cell = cell_of_start_df,
       clean=False)
-
-#Maybe automate code to run every 2-6 hours
