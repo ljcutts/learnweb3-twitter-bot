@@ -2,7 +2,6 @@ import snscrape.modules.twitter as sntwitter
 import pandas as pd
 from os.path import exists
 import glob
-import datetime
 import json
 with open('mdrive.json') as f:
  data = json.load(f)
@@ -13,6 +12,12 @@ import schedule
 import time
 from keep_alive import keep_alive
 
+t = time.time()
+day = time.strftime('%d', time.gmtime(t))
+month = time.strftime('%m', time.gmtime(t))
+year = time.strftime('%Y', time.gmtime(t))
+current_time = "{}".format((int(year), int(month), int(day)))
+
 keep_alive()
 def fetch_tweets():
  file_exists = exists('lw3Tweets.xlsx')
@@ -20,6 +25,7 @@ def fetch_tweets():
  if file_exists is True:
      df = pd.read_excel('lw3Tweets.xlsx')
      df2=df.filter(items=['Username'])
+     df3=df.filter(items=['Tweets'])
      nameValues = []
      for value in df2.values:
        nameValues.append(value[0])
@@ -32,7 +38,6 @@ def fetch_tweets():
              file,
              engine='openpyxl'
          )
- time = "{}".format((datetime.datetime.now().year, datetime.datetime.now().month, datetime.datetime.now().day))
  hashTable = {}
  # Created a list to append all tweet attributes(data)
  attributes_container = []
@@ -41,7 +46,7 @@ def fetch_tweets():
   for i,tweet in enumerate(sntwitter.TwitterSearchScraper('100DaysOfCode LearnWeb3DAO').get_items()):
      if i>100000:
          break
-     if tweet.date.day == datetime.datetime.now().day and tweet.date.month == datetime.datetime.now().month and tweet.date.year == datetime.datetime.now().year:  
+     if tweet.date.day == int(day) and tweet.date.month == int(month) and tweet.date.year == int(year):  
       attributes_container.append([(tweet.date.year,tweet.date.month, tweet.date.day), tweet.user.username, tweet.content, tweet.url, 1])  
  # Creating a dataframe from the tweets list above 
   tweets_df = pd.DataFrame(attributes_container, columns=["Date Created", "Username", "Tweets", "Link", "DaysOfCoding"])
@@ -51,8 +56,8 @@ def fetch_tweets():
      if i>100000:
          break
      notPresent = tweet.user.username in nameValues
-     statement = (notPresent is False) and tweet.date.day == datetime.datetime.now().day and tweet.date.month == datetime.datetime.now().month and tweet.date.year == datetime.datetime.now().year
-     if tweet.date.day == datetime.datetime.now().day and tweet.date.month == datetime.datetime.now().month and tweet.date.year == datetime.datetime.now().year:
+     statement = (notPresent is False) and tweet.date.day == int(day) and tweet.date.month == int(month) and tweet.date.year == int(year)
+     if tweet.date.day == int(day) and tweet.date.month == int(month) and tweet.date.year == int(year):
        usernameArray.append(tweet.user.username)
        hashTable[tweet.user.username] = [tweet.content, tweet.url]
      if statement:
@@ -69,11 +74,11 @@ def fetch_tweets():
   for value in df2.values:
    if value in usernameArray:
     value = df['DaysOfCoding'][counter]
-    df['DaysOfCoding'][counter] = value if df['Date Created'][counter] == time else value + 1
+    df['DaysOfCoding'][counter] = value if df['Date Created'][counter] == current_time else value + 1
     name = df2.values[counter][0]
     df['Tweets'][counter] = hashTable[name][0]
     df['Link'][counter] = hashTable[name][1]
-    df['Date Created'][counter] = (datetime.datetime.now().year, datetime.datetime.now().month, datetime.datetime.now().day)
+    df['Date Created'][counter] = current_time
     df.to_excel('lw3Tweets.xlsx', sheet_name="Sheet1", header=True, index=False)
    counter = counter + 1
 
