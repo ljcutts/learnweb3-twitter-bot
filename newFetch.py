@@ -3,29 +3,37 @@ from os.path import exists
 import glob
 import time
 import json
-with open('/Users/user/Desktop/Intro-to-Ethereum-Programming/nodejs-twitter-bot/mdrive.json') as f:
+with open('/root/repos/learnweb3-twitter-bot/mdrive.json') as f:
  data = json.load(f)
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 from df2gspread import df2gspread as d2g
 import requests
+from datetime import datetime, timedelta
 
+# Get the previous day
+# Get the current date and time
+now = datetime.utcnow()
+previous_day = now - timedelta(days=1)
+# Get the previous day's day, month, and year
+day = previous_day.strftime('%d')
+month = previous_day.strftime('%m')
+year = previous_day.strftime('%Y')
 
-t = time.time()
-day = time.strftime('%d', time.gmtime(t))
-month = time.strftime('%m', time.gmtime(t))
-year = time.strftime('%Y', time.gmtime(t))
-current_time = "{}".format((2023, 5, 7))
+# Set the current_time variable to match the previous day's date
+current_time = "{}".format((year, month, day))
+
+print(current_time)
 
 endpointUrl = "https://api.twitter.com/2/tweets/search/recent"
 tweetLookupEndpoint = "https://api.twitter.com/2/users"
 
-bearer_token = ""
+bearer_token = "AAAAAAAAAAAAAAAAAAAAAIaUlAEAAAAAfoe0fUY0v5RDXPBPd%2FbHoHQ%2F6%2BA%3DP5MxqzRVRHK20bkNfx6155zzZaKodwylByVvq9ZTIgd9R2GZee"
 
-file_exists = exists('/Users/user/Desktop/Intro-to-Ethereum-Programming/nodejs-twitter-bot/lw3Tweets.xlsx')
+file_exists = exists('/root/repos/learnweb3-twitter-bot/lw3Tweets.xlsx')
 usernameArray = []
 if file_exists is True:
-    df = pd.read_excel('/Users/user/Desktop/Intro-to-Ethereum-Programming/nodejs-twitter-bot/lw3Tweets.xlsx')
+    df = pd.read_excel('/root/repos/learnweb3-twitter-bot/lw3Tweets.xlsx')
     df2=df.filter(items=['Username'])
     df3=df.filter(items=['Tweets'])
     nameValues = []
@@ -68,17 +76,25 @@ def get_request():
     # specify a search query, and any additional fields that are required
     # by default, only the Tweet ID and text fields are returned
 
-    startDate = "2023-05-7T00:00:00Z"
-    endDate = "2023-05-7T23:59:59Z"
-    params = {
-        "query": "#30DaysofSolidityLW3 has:mentions",
-        "start_time": startDate,
-        "end_time": endDate,
-        "tweet.fields": "author_id",
-        "user.fields": "username",
-        "max_results": 100,
-    }
+    # Get the current date and time
+    now = datetime.utcnow()
 
+    # Get the previous day
+    previous_day = now - timedelta(days=1)
+
+    # Set the startDate and endDate to the previous day's start and end times
+    startDate = previous_day.strftime('%Y-%m-%dT00:00:00Z')
+    endDate = previous_day.strftime('%Y-%m-%dT23:59:59Z')
+
+    params = {
+    "query": "#30DaysofSolidityLW3 has:mentions",
+    "start_time": startDate,
+    "end_time": endDate,
+    "tweet.fields": "author_id",
+    "user.fields": "username",
+    "max_results": 100,
+    }
+    print(params)
     response = requests.get(
         endpointUrl, params=params,
         headers={
@@ -105,14 +121,14 @@ def get_request():
               usernameArray.append(tweet["author_name"])
               attributes_container.append([current_time, tweet["author_name"], tweet["text"], tweet["url"], 1])
               tweets_df = pd.DataFrame(attributes_container, columns=["Date Created", "Username", "Tweets", "Link", "DaysOfCoding"])
-              tweets_df.to_excel('/Users/user/Desktop/Intro-to-Ethereum-Programming/nodejs-twitter-bot/lw3Tweets.xlsx', header=True, index=False)
+              tweets_df.to_excel('/root/repos/learnweb3-twitter-bot/lw3Tweets.xlsx', header=True, index=False)
             else:
              if(tweet["author_name"]) not in usernameArray:  
                hashTable[tweet["author_name"]] = [tweet["text"], tweet["url"]]  
              if tweet["author_name"] not in nameValues and not usernameArray:
               attributes_container.append([current_time, tweet["author_name"], tweet["text"], tweet["url"], 1])
               tweets_df2 = pd.DataFrame(attributes_container, columns=["Date Created", "Username", "Tweets", "Link", "DaysOfCoding"])
-              with pd.ExcelWriter("/Users/user/Desktop/Intro-to-Ethereum-Programming/nodejs-twitter-bot/lw3Tweets.xlsx",mode="a",engine="openpyxl",if_sheet_exists="overlay") as writer:
+              with pd.ExcelWriter("/root/repos/learnweb3-twitter-bot/lw3Tweets.xlsx",mode="a",engine="openpyxl",if_sheet_exists="overlay") as writer:
                tweets_df2.to_excel(writer, sheet_name="Sheet1",header=None, startrow=writer.sheets["Sheet1"].max_row,index=False)          
             usernameArray.append(tweet["author_name"])  
 
@@ -130,7 +146,7 @@ if __name__ == "__main__":
 
 
 if file_exists is True:
- df = pd.read_excel('/Users/user/Desktop/Intro-to-Ethereum-Programming/nodejs-twitter-bot/lw3Tweets.xlsx')
+ df = pd.read_excel('/root/repos/learnweb3-twitter-bot/lw3Tweets.xlsx')
  df2 = df.filter(items=['Username'])
  counter = 0
 
@@ -143,22 +159,22 @@ if file_exists is True:
    df['Tweets'][counter] = hashTable[name][0]
    df['Link'][counter] = hashTable[name][1]
    df['Date Created'][counter] = current_time
-   df.to_excel('/Users/user/Desktop/Intro-to-Ethereum-Programming/nodejs-twitter-bot/lw3Tweets.xlsx', sheet_name="Sheet1", header=True, index=False)
+   df.to_excel('/root/repos/learnweb3-twitter-bot/lw3Tweets.xlsx', sheet_name="Sheet1", header=True, index=False)
   counter = counter + 1
 
 counter = 0
 usernameArray = []
 hashTable = {}
 
-df = pd.DataFrame(pd.read_excel('/Users/user/Desktop/Intro-to-Ethereum-Programming/nodejs-twitter-bot/lw3Tweets.xlsx'))
+df = pd.DataFrame(pd.read_excel('/root/repos/learnweb3-twitter-bot/lw3Tweets.xlsx'))
 df.drop_duplicates(subset=['Username'], inplace=True)
-df.to_excel('/Users/user/Desktop/Intro-to-Ethereum-Programming/nodejs-twitter-bot/lw3Tweets.xlsx', sheet_name="Sheet1", header=True,index=False)
+df.to_excel('/root/repos/learnweb3-twitter-bot/lw3Tweets.xlsx', sheet_name="Sheet1", header=True,index=False)
 df.sort_values(by="DaysOfCoding", inplace=True, ascending=False)
-df.to_excel('/Users/user/Desktop/Intro-to-Ethereum-Programming/nodejs-twitter-bot/lw3Tweets.xlsx', sheet_name="Sheet1", header=True, index=False)
+df.to_excel('/root/repos/learnweb3-twitter-bot/lw3Tweets.xlsx', sheet_name="Sheet1", header=True, index=False)
 
 # use creds to create a client to interact with the Google Drive API
 scope = ['https://spreadsheets.google.com/feeds','https://www.googleapis.com/auth/drive','https://www.googleapis.com/auth/drive.file','https://www.googleapis.com/auth/spreadsheets']
-creds = ServiceAccountCredentials.from_json_keyfile_name('/Users/user/Desktop/Intro-to-Ethereum-Programming/nodejs-twitter-bot/mdrive.json', scope)
+creds = ServiceAccountCredentials.from_json_keyfile_name('/root/repos/learnweb3-twitter-bot/mdrive.json', scope)
 client = gspread.authorize(creds)
 
 # Find a workbook by name and open the first sheet
